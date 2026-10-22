@@ -15,3 +15,14 @@ done_when = [
   { kind = "task", name = "identity:set" },
   { kind = "task", name = "plan:init" },
 ]
+[[steps]]
+id = "A.2"
+title = "The waiver registry accounts only for this project's own ledger: no waiver is inherited from the template"
+thread = "A"
+depends_on = ["A.1"]
+because = { "A.1" = "the generation that copied the template's ledger-waivers.toml, its waiver for record 2430 included" }
+branch = "feature/ledger-waivers-day-one"
+done_when = [
+  { kind = "path", path = "contracts/mutations/a2.toml" },
+  { kind = "proof", test = "tests/test_ledger_waivers.py::test_a_project_born_sealed_inherits_no_waiver" },
+]

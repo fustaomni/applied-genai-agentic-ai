@@ -1,0 +1,10 @@
+# contracts/mutations/a2.toml
+# A project born sealed inherits no waiver from the template (A.2). The anchor is the registry's
+# contract line; the mutant restores the template's waiver for record 2430 after it.
+
+[[mutants]]
+id = "inherited-waiver-restored"
+file = "contracts/ledger-waivers.toml"
+before = 'contract = "ledger-waivers/v1"'
+after = "contract = \"ledger-waivers/v1\"\n\n[[waivers]]\nposition = 2430\nrun_id = \"51663c7d048143ffb07553289e644462\"\nreason = \"inherited from the template\"\nstep = \"D.165\""
+killers = ["tests/test_ledger_waivers.py::test_a_project_born_sealed_inherits_no_waiver"]

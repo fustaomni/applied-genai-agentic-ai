@@ -3,6 +3,7 @@
 contract = "plan-trace/v1"
 candidates = [
   { source = "TEMPLATE", ref = "day one", text = "its own plan, from day one", maps_to = ["A.1"] },
+  { source = "TEMPLATE", ref = "runs:verify df58968712f7408ba318719c77eb70ea", text = "[ERR_LEDGER_WAIVER_UNMATCHED] the waiver for record 2430 does not name that record's unsigned run", maps_to = ["A.2"] },
 ]
 
 [[sources]]
