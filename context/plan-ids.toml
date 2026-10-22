@@ -3,4 +3,5 @@
 contract = "id-ledger/v1"
 issued = [
   { id = "A.1", first_title = "The project is generated from the platform template" },
+  { id = "A.2", first_title = "The waiver registry accounts only for this project's own ledger: no waiver is inherited from the template" },
 ]
