@@ -15,3 +15,16 @@ done_when = [
   { kind = "task", name = "identity:set" },
   { kind = "task", name = "plan:init" },
 ]
+[[steps]]
+id = "A.3"
+title = "plan:add declares new threads with their steps, refusing a taken thread and an undeclared one as data"
+thread = "A"
+depends_on = ["A.1"]
+because = { "A.1" = "the generated plan declares only thread A, and its plan:add adds steps but never a thread" }
+branch = "feature/plan-threads"
+done_when = [
+  { kind = "path", path = "contracts/mutations/a3.toml" },
+  { kind = "proof", test = "tests/test_plan_add.py::test_a_spec_adds_a_new_thread_with_its_steps" },
+  { kind = "proof", test = "tests/test_plan_add.py::test_an_existing_thread_id_is_refused" },
+  { kind = "proof", test = "tests/test_plan_add.py::test_a_step_naming_an_undeclared_thread_is_refused_as_data" },
+]

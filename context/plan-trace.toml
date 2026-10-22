@@ -3,6 +3,7 @@
 contract = "plan-trace/v1"
 candidates = [
   { source = "TEMPLATE", ref = "day one", text = "its own plan, from day one", maps_to = ["A.1"] },
+  { source = "TEMPLATE", ref = "feature/plan-threads ca778863ef373095ab969266f779ca668110289c (template D.272, unmerged)", text = "plan:add takes only steps and one trace entry, so a roadmap needing new threads cannot be recorded", maps_to = ["A.3"] },
 ]
 
 [[sources]]

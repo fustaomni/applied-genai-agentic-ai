@@ -15,6 +15,9 @@ import shutil
 import tomllib
 from pathlib import Path
 
+import pytest
+
+from command_outcome import CommandOutcome
 from contract_base import from_document
 from nonvacuous import nonempty
 from plan_edit import add
@@ -121,3 +124,66 @@ def test_a_because_keyed_by_a_step_id_round_trips(tmp_path: Path) -> None:
     assert probe.because == {"D.22": "the probe reads a plan step by task"}
     block = (root / FILES[0]).read_text(encoding="utf-8").split('id = "D.99"', 1)[1]
     assert 'because = { "D.22" = "the probe reads a plan step by task" }' in block
+
+
+THREAD_SPEC = """
+[[threads]]
+id = "Z"
+title = "A probe thread proves the editor"
+
+[[steps]]
+id = "Z.1"
+title = "A probe step in a thread the same spec declares"
+thread = "Z"
+depends_on = ["D.12"]
+done_when = [{ kind = "task", name = "plan:add" }]
+
+[trace]
+source = "SESSION"
+ref = "2026-10-20 thread probe"
+text = "a probe thread and its step added by the test"
+"""
+
+
+def test_a_spec_adds_a_new_thread_with_its_steps(tmp_path: Path) -> None:
+    """A thread declared in the spec is written with the step that names it (D.272)."""
+    root = _copy(tmp_path)
+    spec = tmp_path / "add.toml"
+    spec.write_text(THREAD_SPEC, encoding="utf-8")
+    assert add([str(spec)], root=root) == 0
+    plan = _plan(root)
+    assert ("Z", "A probe thread proves the editor") in {(t.id, t.title) for t in plan.threads}
+    assert "D" in {t.id for t in plan.threads}
+    assert next(s for s in plan.steps if s.id == "Z.1").thread == "Z"
+    ids = from_document(IdLedger, tomllib.loads((root / FILES[1]).read_text(encoding="utf-8")))
+    assert "Z.1" in {e.id for e in ids.issued}
+
+
+def test_an_existing_thread_id_is_refused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A thread the plan already declares is refused as data, and nothing is written."""
+    root = _copy(tmp_path)
+    before = _bytes(root)
+    spec = tmp_path / "add.toml"
+    spec.write_text(THREAD_SPEC.replace('"Z"', '"D"'), encoding="utf-8")
+    assert add([str(spec)], root=root) == 2
+    outcome = CommandOutcome.model_validate_json(capsys.readouterr().out)
+    assert outcome.code == "thread_taken"
+    assert _bytes(root) == before
+
+
+def test_a_step_naming_an_undeclared_thread_is_refused_as_data(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A step in a thread neither the plan nor the spec declares is a typed refusal."""
+    root = _copy(tmp_path)
+    before = _bytes(root)
+    spec = tmp_path / "add.toml"
+    spec.write_text(SPEC.replace('thread = "D"', 'thread = "Y"'), encoding="utf-8")
+    assert add([str(spec)], root=root) == 2
+    outcome = CommandOutcome.model_validate_json(capsys.readouterr().out)
+    assert outcome.code == "thread_undeclared"
+    assert outcome.data["step"] == "D.99"
+    assert outcome.data["thread"] == "Y"
+    assert _bytes(root) == before

@@ -1,0 +1,24 @@
+# contracts/mutations/a3.toml
+# plan:add adds threads with its steps, refusing a taken thread and an undeclared one as data.
+# A.3: ported from the template's D.272, mutant for mutant, each killed by one named proof.
+
+[[mutants]]
+id = "threads-not-written"
+file = "scripts/plan_edit.py"
+before = '        _array(documents[PLAN], "threads").add_line(_value(entry), indent="  ")'
+after = '        pass'
+killers = ["tests/test_plan_add.py::test_a_spec_adds_a_new_thread_with_its_steps"]
+
+[[mutants]]
+id = "taken-thread-passes"
+file = "scripts/plan_edit.py"
+before = '    if reused:'
+after = '    if False:'
+killers = ["tests/test_plan_add.py::test_an_existing_thread_id_is_refused"]
+
+[[mutants]]
+id = "undeclared-thread-passes"
+file = "scripts/plan_edit.py"
+before = '        if thread not in known:'
+after = '        if False:'
+killers = ["tests/test_plan_add.py::test_a_step_naming_an_undeclared_thread_is_refused_as_data"]
