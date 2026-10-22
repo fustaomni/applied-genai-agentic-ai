@@ -43,8 +43,11 @@ class _Trace(Contract):
 
 
 class AddSpec(Contract):
-    """What plan:add reads: new steps, and the one trace entry they map from."""
+    """What plan:add reads: new threads, new steps, and the one trace entry they map from."""
 
+    # A NEW THREAD IS DECLARED WITH ITS STEPS (D.272): validated as a Thread by ProjectPlan,
+    # in the same pass as the steps, so a project can plan work outside its first thread.
+    threads: tuple[dict[str, JsonValue], ...] = ()
     steps: tuple[dict[str, JsonValue], ...] = Field(min_length=1)
     trace: _Trace
 
@@ -157,7 +160,7 @@ def _spec_text(argv: Sequence[str] | None, verb: str) -> str:
 
 
 def add(argv: Sequence[str] | None = None, *, root: Path = ROOT) -> int:
-    """plan:add <spec> -- steps, their ids and one trace entry, together or not at all."""
+    """plan:add <spec> -- threads, steps, their ids and one trace entry, all or nothing."""
     spec = from_document(AddSpec, tomllib.loads(_spec_text(argv, "add")))
     documents = {relative: _parse(root, relative) for relative in (PLAN, IDS, TRACE)}
     planned = {str(step["id"]) for step in _steps(documents[PLAN])}
@@ -172,7 +175,33 @@ def add(argv: Sequence[str] | None = None, *, root: Path = ROOT) -> int:
             f"already planned or issued: {', '.join(taken)}",
             {"taken": list(taken)},
         )
+    existing = {str(thread["id"]) for thread in _array(documents[PLAN], "threads")}
+    declared = [str(thread.get("id", "")) for thread in spec.threads]
+    reused = sorted(set(declared) & existing)
+    if reused:
+        return _report(
+            "plan:add",
+            "refused",
+            "thread_taken",
+            f"threads already declared: {', '.join(reused)}",
+            {"taken": list(reused)},
+        )
+    # REFUSED AS DATA, BEFORE ANY WRITE: never left to surface as a contract error.
+    known = existing | set(declared)
+    for step in spec.steps:
+        thread = str(step.get("thread", ""))
+        if thread not in known:
+            named = str(step.get("id", ""))
+            return _report(
+                "plan:add",
+                "refused",
+                "thread_undeclared",
+                f"{named} names thread {thread}, which neither the plan nor the spec declares",
+                {"step": named, "thread": thread},
+            )
 
+    for entry in spec.threads:
+        _array(documents[PLAN], "threads").add_line(_value(entry), indent="  ")
     for step in spec.steps:
         table = tomlkit.table()
         for key, value in step.items():

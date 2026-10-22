@@ -3,4 +3,5 @@
 contract = "id-ledger/v1"
 issued = [
   { id = "A.1", first_title = "The project is generated from the platform template" },
+  { id = "A.3", first_title = "plan:add declares new threads with their steps, refusing a taken thread and an undeclared one as data" },
 ]
