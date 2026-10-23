@@ -1461,3 +1461,13 @@ severity = "error"
 code = "ERR_CI_STATE_UNOBSERVED"
 title = "Every state CI depends on was read"
 severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_WORKFLOW_INACTIVE"
+title = "Every registered repository workflow is active"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_WORKFLOW_UNREGISTERED"
+title = "The workflow file is registered with GitHub"
+severity = "error"

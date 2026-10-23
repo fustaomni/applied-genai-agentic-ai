@@ -64,3 +64,17 @@ file = "scripts/ci_state.py"
 before = '"ci_runs_on_head"'
 after = '"ci_unknown"'
 killers = ["tests/test_ci_state.py::test_a_repository_workflow_run_on_the_head_proceeds"]
+
+[[mutants]]
+id = "unregistered-passes"
+file = "policies/runs/ci_state/ci_state.rego"
+before = 'count(_registered) == 0'
+after = 'count(_registered) == 99'
+killers = ["tests/test_ci_state.py::test_an_unregistered_workflow_is_named"]
+
+[[mutants]]
+id = "inactive-ignored"
+file = "policies/runs/ci_state/ci_state.rego"
+before = 'workflow.state != "active"'
+after = 'workflow.state == "never"'
+killers = ["tests/test_ci_state.py::test_an_inactive_workflow_is_named"]

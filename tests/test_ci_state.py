@@ -33,17 +33,22 @@ CODE_SCANNING = {
     "conclusion": "success",
     "event": "dynamic",
 }
+REGISTERED_CI = {"path": ".github/workflows/ci.yml", "state": "active"}
 
 
 class FakeGh:
     """gh as ci_state calls it: the PR, the repository's Actions permissions, the head's runs."""
 
     def __init__(
-        self, permissions: Mapping[str, object] | None, runs: Sequence[Mapping[str, object]]
+        self,
+        permissions: Mapping[str, object] | None,
+        runs: Sequence[Mapping[str, object]],
+        workflows: Sequence[Mapping[str, object]] = (REGISTERED_CI,),
     ) -> None:
         self.calls: list[list[str]] = []
         self.permissions = permissions
         self.runs = runs
+        self.workflows = workflows
 
     def __call__(self, args: list[str]) -> tuple[int, str]:
         self.calls.append(list(args))
@@ -53,6 +58,9 @@ class FakeGh:
             if self.permissions is None:
                 return 1, ""
             return 0, json.dumps(self.permissions)
+        if args[0] == "api" and args[-1].endswith("/actions/workflows"):
+            body = {"total_count": len(self.workflows), "workflows": list(self.workflows)}
+            return 0, json.dumps(body)
         if args[0] == "api" and "/actions/runs?" in args[-1]:
             return 0, json.dumps({"total_count": len(self.runs), "workflow_runs": self.runs})
         return 0, ""
@@ -149,3 +157,19 @@ def test_an_absent_request_is_refused_by_the_policy() -> None:
     found = spine.evaluate(request, "not_ci_state", POLICY, ENTRYPOINT)
     codes = [rule.code for rule in found.rules if rule.outcome == "fail"]
     assert "ERR_CI_STATE_INPUT_MISSING" in codes, found
+
+
+def test_an_unregistered_workflow_is_named(capsys: pytest.CaptureFixture[str]) -> None:
+    """No registered workflow for the file: GitHub has nothing to dispatch on any event."""
+    assert _run(FakeGh(OPEN, [CODE_SCANNING], workflows=[])) == 2
+    message = str(_printed(capsys)["message"])
+    assert "ERR_CI_STATE_WORKFLOW_UNREGISTERED" in message, message
+
+
+def test_an_inactive_workflow_is_named(capsys: pytest.CaptureFixture[str]) -> None:
+    """A registered workflow GitHub holds disabled creates no run, whatever its triggers."""
+    disabled = {**REGISTERED_CI, "state": "disabled_manually"}
+    assert _run(FakeGh(OPEN, [CODE_SCANNING], workflows=[disabled])) == 2
+    message = str(_printed(capsys)["message"])
+    assert "ERR_CI_STATE_WORKFLOW_INACTIVE" in message, message
+    assert "disabled_manually" in message, message

@@ -45,6 +45,13 @@ class WorkflowRun(Contract):
     event: str
 
 
+class RegisteredWorkflow(Contract):
+    """A workflow GitHub holds registered for the repository, with the state it dispatches on."""
+
+    path: str
+    state: str
+
+
 class CiStateRequest(Contract):
     """What ci:state observed: the PR, its head, the Actions policy, the runs, the service."""
 
@@ -55,6 +62,7 @@ class CiStateRequest(Contract):
     sha_pinning_required: bool | None
     runs: tuple[WorkflowRun, ...] | None
     actions_status: str | None
+    workflows: tuple[RegisteredWorkflow, ...] | None = None
 
 
 class _Pull(Reading):
@@ -78,6 +86,15 @@ class _Listed(Reading):
 
 class _Runs(Reading):
     workflow_runs: tuple[_Listed, ...] = ()
+
+
+class _Registered(Reading):
+    path: str
+    state: str
+
+
+class _Workflows(Reading):
+    workflows: tuple[_Registered, ...] = ()
 
 
 def _gh(args: list[str]) -> tuple[int, str]:
@@ -124,6 +141,18 @@ def _runs(gh: Gh, head: str) -> tuple[WorkflowRun, ...] | None:
     )
 
 
+def _workflows(gh: Gh) -> tuple[RegisteredWorkflow, ...] | None:
+    # THE REGISTRY GITHUB DISPATCHES FROM: a file it holds no active entry for never runs.
+    code, out = gh(["api", "repos/{owner}/{repo}/actions/workflows"])
+    if code != 0:
+        return None
+    try:
+        listed = _Workflows.model_validate_json(out).workflows
+    except ValidationError:
+        return None
+    return tuple(RegisteredWorkflow(path=entry.path, state=entry.state) for entry in listed)
+
+
 def main(
     argv: Sequence[str] | None = None,
     *,
@@ -147,6 +176,7 @@ def main(
         sha_pinning_required=None if permissions is None else permissions.sha_pinning_required,
         runs=None if head is None else _runs(gh, head),
         actions_status=status(),
+        workflows=_workflows(gh),
     )
     observed = request.model_dump(mode="json")
     found = evaluate(request, SUBJECT, POLICY, ENTRYPOINT)

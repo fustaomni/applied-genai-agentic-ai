@@ -30,8 +30,18 @@ _restricted if {
 	_state.sha_pinning_required == true
 }
 
+_registered contains workflow if {
+	some workflow in _state.workflows
+	startswith(workflow.path, ".github/workflows/")
+}
+
+_inactive contains sprintf("%v (%v)", [workflow.path, workflow.state]) if {
+	some workflow in _registered
+	workflow.state != "active"
+}
+
 _unobserved contains field if {
-	some field in ["actions_enabled", "runs", "actions_status"]
+	some field in ["actions_enabled", "runs", "actions_status", "workflows"]
 	_state[field] == null
 }
 
@@ -124,6 +134,31 @@ deny contains denial if {
 }
 
 # METADATA
+# title: The workflow file is registered with GitHub
+# custom:
+#   code: ERR_CI_STATE_WORKFLOW_UNREGISTERED
+deny contains denial if {
+	_state.workflows != null
+	count(_registered) == 0
+	denial := {
+		"code": rego.metadata.rule().custom.code,
+		"message": "GitHub holds no registered repository workflow, so it has nothing to dispatch",
+	}
+}
+
+# METADATA
+# title: Every registered repository workflow is active
+# custom:
+#   code: ERR_CI_STATE_WORKFLOW_INACTIVE
+deny contains denial if {
+	count(_inactive) > 0
+	denial := {
+		"code": rego.metadata.rule().custom.code,
+		"message": sprintf("%v not active: GitHub creates no run for a disabled workflow", [_inactive]),
+	}
+}
+
+# METADATA
 # title: A repository workflow was dispatched for the head
 # custom:
 #   code: ERR_CI_STATE_NO_RUN
@@ -132,6 +167,8 @@ deny contains denial if {
 	not _restricted
 	_state.actions_status == "operational"
 	_state.runs != null
+	count(_registered) > 0
+	count(_inactive) == 0
 	count(_repo_runs) == 0
 	denial := {
 		"code": rego.metadata.rule().custom.code,
