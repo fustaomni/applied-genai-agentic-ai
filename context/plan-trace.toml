@@ -3,6 +3,7 @@
 contract = "plan-trace/v1"
 candidates = [
   { source = "TEMPLATE", ref = "day one", text = "its own plan, from day one", maps_to = ["A.1"] },
+  { source = "TEMPLATE", ref = "pr runs fc8a07ee9cde485fa4bb4fca1338209c (PR 1) and 4b88f68965fb4c03b11dda8256bf0b8a (PR 2)", text = "quality gate never registered in 1200 s on two pull requests while code scanning ran; pr:logs reads failed runs only", maps_to = ["A.4"] },
 ]
 
 [[sources]]

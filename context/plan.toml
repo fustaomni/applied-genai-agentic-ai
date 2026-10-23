@@ -15,3 +15,22 @@ done_when = [
   { kind = "task", name = "identity:set" },
   { kind = "task", name = "plan:init" },
 ]
+[[steps]]
+id = "A.4"
+title = "ci:state judges whether CI can run on a pull request's head: Actions permissions and every run there, in every state"
+thread = "A"
+depends_on = ["A.1"]
+because = { "A.1" = "the generated workflow never produced quality gate on PR 1 or PR 2, and no task reads Actions permissions or a head's runs in every state" }
+branch = "feature/ci-state"
+done_when = [
+  { kind = "task", name = "ci:state" },
+  { kind = "path", path = "contracts/mutations/a4.toml" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_a_repository_workflow_run_on_the_head_proceeds" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_a_startup_failure_is_refused_naming_its_workflow" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_actions_disabled_is_refused" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_restricted_actions_without_a_run_are_refused" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_no_repository_workflow_run_is_refused_as_a_dropped_trigger" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_an_unread_permission_is_unobserved_never_assumed" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_a_degraded_actions_service_is_named" },
+  { kind = "proof", test = "tests/test_ci_state.py::test_an_absent_request_is_refused_by_the_policy" },
+]

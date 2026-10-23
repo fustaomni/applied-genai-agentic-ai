@@ -3,4 +3,5 @@
 contract = "id-ledger/v1"
 issued = [
   { id = "A.1", first_title = "The project is generated from the platform template" },
+  { id = "A.4", first_title = "ci:state judges whether CI can run on a pull request's head: Actions permissions and every run there, in every state" },
 ]

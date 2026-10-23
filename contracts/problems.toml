@@ -1421,3 +1421,43 @@ severity = "error"
 code = "ERR_DEPS_REMOVE_UNDECLARED"
 title = "Only a package the project declares is removed"
 severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_ACTIONS_DISABLED"
+title = "GitHub Actions is enabled for the repository"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_ACTIONS_RESTRICTED"
+title = "An actions policy has not stopped every repository workflow"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_GITHUB_DEGRADED"
+title = "GitHub's Actions service is operational while nothing has started"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_INPUT_MISSING"
+title = "The CI state request is supplied, never assumed"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_NO_PR"
+title = "There is a pull request"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_NO_RUN"
+title = "A repository workflow was dispatched for the head"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_STARTUP_FAILURE"
+title = "No repository workflow failed at startup"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_STATE_UNOBSERVED"
+title = "Every state CI depends on was read"
+severity = "error"

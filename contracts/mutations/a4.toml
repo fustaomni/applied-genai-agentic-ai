@@ -1,0 +1,66 @@
+# contracts/mutations/a4.toml
+# ci:state names why CI cannot run on a pull request's head (A.4): each mutant removes one
+# decision runs.ci_state makes, and exactly one named proof notices.
+
+[[mutants]]
+id = "startup-failure-ignored"
+file = "policies/runs/ci_state/ci_state.rego"
+before = 'run.conclusion == "startup_failure"'
+after = 'run.conclusion == "never"'
+killers = ["tests/test_ci_state.py::test_a_startup_failure_is_refused_naming_its_workflow"]
+
+[[mutants]]
+id = "disabled-passes"
+file = "policies/runs/ci_state/ci_state.rego"
+before = '_state.actions_enabled == false'
+after = '_state.actions_enabled == "never"'
+killers = ["tests/test_ci_state.py::test_actions_disabled_is_refused"]
+
+[[mutants]]
+id = "restriction-ignored"
+file = "policies/runs/ci_state/ci_state.rego"
+before = '_state.allowed_actions != "all"'
+after = '_state.allowed_actions == "never"'
+killers = ["tests/test_ci_state.py::test_restricted_actions_without_a_run_are_refused"]
+
+[[mutants]]
+id = "dropped-trigger-passes"
+file = "policies/runs/ci_state/ci_state.rego"
+before = '_state.actions_status == "operational"'
+after = '_state.actions_status == "never"'
+killers = ["tests/test_ci_state.py::test_no_repository_workflow_run_is_refused_as_a_dropped_trigger"]
+
+[[mutants]]
+id = "unread-assumed"
+file = "policies/runs/ci_state/ci_state.rego"
+before = '_state[field] == null'
+after = '_state[field] == "never"'
+killers = ["tests/test_ci_state.py::test_an_unread_permission_is_unobserved_never_assumed"]
+
+[[mutants]]
+id = "degraded-unnamed"
+file = "policies/runs/ci_state/ci_state.rego"
+before = '_state.actions_status != "operational"'
+after = '_state.actions_status == "never"'
+killers = ["tests/test_ci_state.py::test_a_degraded_actions_service_is_named"]
+
+[[mutants]]
+id = "any-run-counts"
+file = "policies/runs/ci_state/ci_state.rego"
+before = 'startswith(run.path, ".github/workflows/")'
+after = 'true'
+killers = ["tests/test_ci_state.py::test_no_repository_workflow_run_is_refused_as_a_dropped_trigger"]
+
+[[mutants]]
+id = "absence-passes"
+file = "policies/runs/ci_state/ci_state.rego"
+before = 'not input.ci_state'
+after = 'false'
+killers = ["tests/test_ci_state.py::test_an_absent_request_is_refused_by_the_policy"]
+
+[[mutants]]
+id = "proceed-misreported"
+file = "scripts/ci_state.py"
+before = '"ci_runs_on_head"'
+after = '"ci_unknown"'
+killers = ["tests/test_ci_state.py::test_a_repository_workflow_run_on_the_head_proceeds"]

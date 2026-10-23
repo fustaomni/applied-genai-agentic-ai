@@ -560,6 +560,12 @@ description = "Re-request an app's check suite on this PR's head when a declared
 # runs.pr_checks, only suites awaiting a run, and done only when the check is seen on the head.
 run = "uv run --no-sync python scripts/pr_checks.py"
 
+[tasks."ci:state"]
+description = "Judge whether CI can run on this PR's head: Actions permissions and every run there"
+# THE GATE THAT NEVER REGISTERED (A.4): on PR #1 and PR #2 the quality gate posted nothing while
+# code scanning ran. A startup failure has no check run; only the head's run list shows it.
+run = "uv run --no-sync python scripts/ci_state.py"
+
 [tasks."bundle:deploy"]
 description = "Validate the bundle strictly, then deploy it to a target (dev unless named)"
 # VALIDATE --strict BEFORE EVERY DEPLOY. 2026 practice makes validate the reflex
