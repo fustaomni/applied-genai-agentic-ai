@@ -1471,3 +1471,28 @@ severity = "error"
 code = "ERR_CI_STATE_WORKFLOW_UNREGISTERED"
 title = "The workflow file is registered with GitHub"
 severity = "error"
+
+[[problems]]
+code = "ERR_CI_DISPATCH_INPUT_MISSING"
+title = "The dispatch request is supplied, never assumed"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_DISPATCH_NOT_DISPATCHABLE"
+title = "The gate workflow declares a workflow_dispatch trigger"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_DISPATCH_NO_PR"
+title = "There is a pull request to dispatch on"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_DISPATCH_RUN_EXISTS"
+title = "The gate has no run on the head yet"
+severity = "error"
+
+[[problems]]
+code = "ERR_CI_DISPATCH_UNOBSERVED"
+title = "Every state a dispatch depends on was read"
+severity = "error"

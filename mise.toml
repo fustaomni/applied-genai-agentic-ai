@@ -566,6 +566,12 @@ description = "Judge whether CI can run on this PR's head: Actions permissions a
 # code scanning ran. A startup failure has no check run; only the head's run list shows it.
 run = "uv run --no-sync python scripts/ci_state.py"
 
+[tasks."ci:dispatch"]
+description = "Dispatch the gate on this PR's head when GitHub created no run there, and see it start"
+# THE EVENT THAT NEVER BECAME A RUN (A.5): ci:state read the gate registered and active with no
+# run on the head. Decided by runs.ci_dispatch, and done only once the gate's run is seen there.
+run = "uv run --no-sync python scripts/ci_dispatch.py"
+
 [tasks."bundle:deploy"]
 description = "Validate the bundle strictly, then deploy it to a target (dev unless named)"
 # VALIDATE --strict BEFORE EVERY DEPLOY. 2026 practice makes validate the reflex

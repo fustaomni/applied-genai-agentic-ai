@@ -10,6 +10,10 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  # DISPATCHABLE (A.5). In every generated repository GitHub created no run for a push or a
+  # pull request while this workflow read registered and active; ci:dispatch runs the gate on a
+  # pull request's head through this trigger, and the check it posts is the one required.
+  workflow_dispatch:
 
 # LEAST PRIVILEGE AT THE WORKFLOW LEVEL. The default token is far broader than a
 # gate needs. This workflow reads code and nothing else; it publishes nothing,

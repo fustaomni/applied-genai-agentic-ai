@@ -119,7 +119,7 @@ def _permissions(gh: Gh) -> _Permissions | None:
         return None
 
 
-def _runs(gh: Gh, head: str) -> tuple[WorkflowRun, ...] | None:
+def runs_on_head(gh: Gh, head: str) -> tuple[WorkflowRun, ...] | None:
     # EVERY STATUS, EVERY CONCLUSION: a startup_failure is a run, and a failure filter misses it.
     url = f"repos/{{owner}}/{{repo}}/actions/runs?head_sha={head}&per_page=100"
     code, out = gh(["api", url])
@@ -174,7 +174,7 @@ def main(
         actions_enabled=None if permissions is None else permissions.enabled,
         allowed_actions=None if permissions is None else permissions.allowed_actions,
         sha_pinning_required=None if permissions is None else permissions.sha_pinning_required,
-        runs=None if head is None else _runs(gh, head),
+        runs=None if head is None else runs_on_head(gh, head),
         actions_status=status(),
         workflows=_workflows(gh),
     )
