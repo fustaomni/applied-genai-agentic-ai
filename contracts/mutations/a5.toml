@@ -1,0 +1,45 @@
+# contracts/mutations/a5.toml
+# ci:dispatch runs the gate on a pull request's head and is done only once its run is seen (A.5):
+# each mutant removes one decision or observation, and exactly one named proof notices.
+
+[[mutants]]
+id = "trigger-not-required"
+file = "policies/runs/ci_dispatch/ci_dispatch.rego"
+before = 'not "workflow_dispatch" in _request.triggers'
+after = 'false'
+killers = ["tests/test_ci_dispatch.py::test_a_ref_without_the_dispatch_trigger_is_refused"]
+
+[[mutants]]
+id = "existing-run-ignored"
+file = "policies/runs/ci_dispatch/ci_dispatch.rego"
+before = 'run.path == _request.workflow'
+after = 'run.path == "never"'
+killers = ["tests/test_ci_dispatch.py::test_nothing_is_dispatched_while_a_run_exists"]
+
+[[mutants]]
+id = "absence-passes"
+file = "policies/runs/ci_dispatch/ci_dispatch.rego"
+before = 'not input.ci_dispatch'
+after = 'false'
+killers = ["tests/test_ci_dispatch.py::test_an_absent_request_is_refused_by_the_policy"]
+
+[[mutants]]
+id = "dispatch-not-sent"
+file = "scripts/ci_dispatch.py"
+before = 'gh(["workflow", "run", Path(WORKFLOW).name, "--ref", branch])'
+after = 'None'
+killers = ["tests/test_ci_dispatch.py::test_a_dropped_trigger_is_dispatched_and_its_run_seen"]
+
+[[mutants]]
+id = "acceptance-trusted"
+file = "scripts/ci_dispatch.py"
+before = 'if _gate_ran(runs_on_head(gh, head)):'
+after = 'if True:'
+killers = ["tests/test_ci_dispatch.py::test_a_dispatch_whose_run_never_appears_halts"]
+
+[[mutants]]
+id = "bare-on-unread"
+file = "scripts/ci_dispatch.py"
+before = '"on": data[True]'
+after = '"off": data[True]'
+killers = ["tests/test_ci_dispatch.py::test_the_gate_workflow_can_be_dispatched"]
